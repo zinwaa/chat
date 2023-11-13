@@ -53,8 +53,8 @@ const getMessage = (data) => {
 
     //保存聊天框中一组数据的request
     let chat = reactive({ "request": data, 'response': [] })
+    let text = reactive([]) //暂时存储response的数据
     chatLists.push(chat)
-
     //记录访问次数
     let __try = 0;
 
@@ -64,7 +64,8 @@ const getMessage = (data) => {
       axios.post('https://wm-interview.onrender.com/send', { message: data }).then(function (response) {
         var list = response.data.content
         if (list !== 'undefined') {
-          chat['response'].push(`${chat.response.length + 1}.${list}`)
+          text.push(`${chat.response.length + 1}.${list}`)
+          chat['response'].push('')
         }
         //得到3次数据则停止访问
         if (chat.response.length >= 3) {
@@ -87,6 +88,7 @@ const getMessage = (data) => {
         tipState.value = 'error'
         tipData.value = '网络或服务器异常,请重新发起请求'
         tipShow.value = true
+        setTimeout(() => tipShow.value = false, 2000)
         isinput.value = true
         //若chat中没有一条数据，则删除最后一条
         if (chat.response.length === 0) {
@@ -103,7 +105,7 @@ const getMessage = (data) => {
        * @param {String} context 
        */
       const addTxt = function (context) {
-        let i = 1;
+        let i = 0;
         let interval;
         let str = ""
         if (i > context.length) {
@@ -111,7 +113,7 @@ const getMessage = (data) => {
         } else {
           interval = setInterval(() => {
             i++;
-            str = context.substr(0, i);
+            str = context.substring(0, i);
             if (i >= context.length) {
               chatLists[chatLists.length - 1].response[val - 1] = str
               clearInterval(interval)
@@ -121,7 +123,8 @@ const getMessage = (data) => {
           }, 100)
         }
       }
-      addTxt(chat.response[val - 1])
+      
+      addTxt(text[val - 1])
     })
   }
   else {
